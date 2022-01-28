@@ -6,6 +6,8 @@ Dueling Platform for Competitive Programming. Learn through Games.
 - Install Virtualenv and use `virtualenv venv` on the root directory.
 - Access the created virtual environment using `venv/scripts/activate` for powershell and `Source venv/bin/activate` for linux/bash.
 - `pip install -r requirements.txt`
+- Download postgresql and create credentials.
+- Download .env file from wiki page of this repo and replace your credentials wherever required. Place the .env file on the root directory.
 - Run the server using `uvicorn main:app --reload`. The server should be running on PORT 8000.
 
 # Access Swagger API
