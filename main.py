@@ -1,13 +1,5 @@
-from fastapi import FastAPI
-from db import SessionLocal, engine
-from routes import auth_router
-import models
-
-models.Base.metadata.create_all(bind=engine)
-
-db = SessionLocal()
-
-app = FastAPI()
+from app import app
+from app.routes import auth_router
 
 @app.get("/")
 async def home():
