@@ -1,3 +1,5 @@
+from app import db
+
 class AuthService:
 
     @classmethod
