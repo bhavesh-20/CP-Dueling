@@ -22,7 +22,7 @@ fileConfig(config.config_file_name)
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir)
 from app.models import *
-from app.db import Base,SQLALCHEMY_DATABASE_URI
+from app.database import Base,SQLALCHEMY_DATABASE_URI
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
