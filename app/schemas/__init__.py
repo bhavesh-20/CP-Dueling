@@ -1,1 +1,1 @@
-from .request_schemas.userlogin import UserLoginRequest, UserSignInRequest
+from .request_schemas.userlogin import UserLoginRequest, UserSignupRequest
