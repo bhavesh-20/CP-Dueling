@@ -8,7 +8,7 @@ from app import db
 from app.models import User
 from app.schemas import UserResponse
 
-from . import JWTtoken
+from .JWTtoken import JWTtoken
 
 
 async def authenticate_user(access_token: Optional[str] = Header(None)):
