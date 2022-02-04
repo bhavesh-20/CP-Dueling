@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Optional
 
-from fastapi import Header, HTTPException, status
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer
 from sqlalchemy.sql.expression import select
 
 from app import db
@@ -10,8 +10,11 @@ from app.schemas import UserResponse
 
 from .JWTtoken import JWTtoken
 
+security = HTTPBearer()
 
-async def authenticate_user(access_token: Optional[str] = Header(None)):
+
+async def authenticate_user(authorization=Depends(security)):
+    access_token = authorization.credentials
     if access_token is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Access Token not provided"
