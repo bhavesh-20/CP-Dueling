@@ -21,8 +21,9 @@ fileConfig(config.config_file_name)
 
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir)
+from app.database import SQLALCHEMY_DATABASE_URI, Base
 from app.models import *
-from app.database import Base,SQLALCHEMY_DATABASE_URI
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -31,6 +32,7 @@ target_metadata = Base.metadata
 # ... etc.
 def get_url():
     return SQLALCHEMY_DATABASE_URI
+
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
@@ -66,9 +68,7 @@ def run_migrations_online():
     connectable = create_engine(get_url())
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
