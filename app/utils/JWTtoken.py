@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Optional
 
 from fastapi import status
 from jose import JWTError, jwt
@@ -10,7 +9,7 @@ from app.config import config
 class JWTtoken:
     @classmethod
     async def create_access_token(cls, data: dict):
-        to_encode = data.copy()
+        to_encode = {"data": data}
         expire = datetime.utcnow() + timedelta(
             minutes=int(config.ACCESS_TOKEN_EXPIRE_MINUTES)
         )
