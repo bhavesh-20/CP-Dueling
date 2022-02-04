@@ -1,21 +1,17 @@
 from fastapi import FastAPI
 
-from app.database import Base, database
-
-from .database import SessionLocal, engine
+from app.database import Base, SessionLocal, db, engine
 
 Base.metadata.create_all(bind=engine)
-
-db = SessionLocal()
 
 app = FastAPI()
 
 
 @app.on_event("startup")
 async def connect():
-    await database.connect()
+    await db.connect()
 
 
 @app.on_event("shutdown")
 async def disconnect():
-    await database.disconnect()
+    await db.disconnect()

@@ -12,5 +12,5 @@ else:
     SQLALCHEMY_DATABASE_URI = f"postgresql://{config.REMOTE_POSTGRES_USER}:{urllib.parse.quote_plus(config.REMOTE_POSTGRES_PASSWORD)}@{config.REMOTE_POSTGRES_SERVER}/{config.REMOTE_POSTGRES_DATABASE}"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URI)
-database = databases.Database(SQLALCHEMY_DATABASE_URI)
+db = databases.Database(SQLALCHEMY_DATABASE_URI)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

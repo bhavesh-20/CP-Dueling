@@ -1,5 +1,6 @@
 from fastapi import status
 from passlib.context import CryptContext
+from sqlalchemy.sql.expression import insert, select
 
 from app import db
 from app.models import User
@@ -13,7 +14,7 @@ class AuthService:
 
     @classmethod
     async def login(cls, request: UserLoginRequest):
-        user = db.query(User).filter(User.email == request.email).first()
+        user = await db.fetch_one(select([User]).where(User.email == request.email))
 
         if user is None:
             return {
@@ -39,17 +40,17 @@ class AuthService:
 
     @classmethod
     async def signup(cls, request: UserSignupRequest):
-        user = db.query(User).filter(User.email == request.email).first()
+        user = await db.fetch_one(select([User]).where(User.email == request.email))
         if user is not None:
             return {
                 "message": "User already exists",
                 "status_code": status.HTTP_409_CONFLICT,
             }
-        new_user = User(
-            username=request.username,
-            email=request.email,
-            hashed_password=cls.pwd_context.hash(request.password),
+        await db.execute(
+            insert(User).values(
+                email=request.email,
+                username=request.username,
+                hashed_password=cls.pwd_context.hash(request.password),
+            )
         )
-        db.add(new_user)
-        db.commit()
         return {"message": "Signup Successful", "status_code": status.HTTP_201_CREATED}
