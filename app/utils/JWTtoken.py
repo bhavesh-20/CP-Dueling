@@ -9,6 +9,7 @@ from app.config import config
 class JWTtoken:
     @classmethod
     async def create_access_token(cls, data: dict):
+        """JWT Token is created , which is valid for 24hrs."""
         to_encode = {"data": data}
         expire = datetime.utcnow() + timedelta(
             minutes=int(config.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -21,6 +22,7 @@ class JWTtoken:
 
     @classmethod
     async def decode_access_token(cls, access_token: str):
+        """The generated JWT Token is decoded and verified."""
         try:
             payload = jwt.decode(
                 access_token, config.SECRET_KEY, algorithms=[config.ALGORITHM]

@@ -14,7 +14,7 @@ class AuthService:
 
     @classmethod
     async def login(cls, request: UserLoginRequest):
-        """Functionality for /login endpoint. (User Info Validation)"""
+        """Functionality for /login endpoint. And also JWT token creation invoked."""
         user = await db.fetch_one(select([User]).where(User.email == request.email))
 
         if user is None:
