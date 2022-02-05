@@ -12,7 +12,7 @@ from .JWTtoken import JWTtoken
 
 security = HTTPBearer()
 
-
+"""The generated JWT Token is validated."""
 async def authenticate_user(authorization=Depends(security)):
     access_token = authorization.credentials
     if access_token is None:
