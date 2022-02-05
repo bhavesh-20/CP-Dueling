@@ -14,6 +14,7 @@ class AuthService:
 
     @classmethod
     async def login(cls, request: UserLoginRequest):
+        """Functionality for /login endpoint. (User Info Validation)"""
         user = await db.fetch_one(select([User]).where(User.email == request.email))
 
         if user is None:
@@ -40,6 +41,7 @@ class AuthService:
 
     @classmethod
     async def signup(cls, request: UserSignupRequest):
+        """Functionality for /signup endpoint.(New User)"""
         user = await db.fetch_one(select([User]).where(User.email == request.email))
         if user is not None:
             return {
