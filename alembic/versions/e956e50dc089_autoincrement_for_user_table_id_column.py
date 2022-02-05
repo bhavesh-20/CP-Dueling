@@ -1,8 +1,8 @@
-"""Initial tables
+"""autoincrement for user table id column
 
-Revision ID: 65dbc517b35f
-Revises: 
-Create Date: 2022-02-01 17:28:54.774031
+Revision ID: e956e50dc089
+Revises: 64cc49917136
+Create Date: 2022-02-04 21:05:51.664170
 
 """
 import sqlalchemy as sa
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "65dbc517b35f"
-down_revision = None
+revision = "e956e50dc089"
+down_revision = "64cc49917136"
 branch_labels = None
 depends_on = None
 

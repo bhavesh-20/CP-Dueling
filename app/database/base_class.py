@@ -1,7 +1,9 @@
 from typing import Any, Dict
+
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 
 class_registry: Dict = {}
+
 
 @as_declarative(class_registry=class_registry)
 class Base:
