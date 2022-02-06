@@ -1,4 +1,5 @@
 from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy.orm import relationship
 
 from app.database import Base
 
@@ -12,3 +13,16 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, nullable=False, server_default="true")
+
+    friends = relationship("Friend", back_populates="user")
+
+
+class Friend(Base):
+
+    __tablename__ = "friends"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, index=True, foreign_key="users.id")
+    friend_id = Column(Integer, index=True, foreign_key="users.id")
+
+    user = relationship("User", back_populates="friends")
