@@ -14,8 +14,6 @@ class User(Base):
     hashed_password = Column(String)
     is_active = Column(Boolean, nullable=False, server_default="true")
 
-    friends = relationship("Friend", back_populates="user")
-
 
 class Friend(Base):
 
@@ -23,6 +21,7 @@ class Friend(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), index=True)
-    friend_id = Column(Integer, index=True)
+    friend_id = Column(Integer, ForeignKey("users.id"), index=True)
 
-    user = relationship("User", back_populates="friends")
+    user = relationship("User", foreign_keys=[user_id])
+    friend = relationship("User", foreign_keys=[friend_id])
