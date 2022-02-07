@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -22,7 +22,7 @@ class Friend(Base):
     __tablename__ = "friends"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column(Integer, index=True, foreign_key="users.id")
-    friend_id = Column(Integer, index=True, foreign_key="users.id")
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    friend_id = Column(Integer, index=True)
 
     user = relationship("User", back_populates="friends")
