@@ -26,10 +26,10 @@ async def get_user_by_name(
 
 
 @router.post("/friend/:id")
-async def add_friend(
+async def send_friend_request(
     id: int, response: Response, user: UserResponse = Depends(authenticate_user)
 ):
-    user = await UserService.add_friend(id, user)
+    user = await UserService.send_friend_request(id, user)
     response.status_code = user["status_code"]
     return user
 
@@ -40,4 +40,22 @@ async def get_friends(
 ):
     user = await UserService.get_friends(user)
     response.status_code = user["status_code"]
+    return user
+
+
+@router.get("/freindsrequests")
+async def get_friend_requests(
+    response: Response, user: UserResponse = Depends(authenticate_user)
+):
+    user = await UserService.get_friend_requests(user)
+    response.status_code = user["status_code"]
+    return user
+
+
+@router.post("/acceptfriendrequest/:id")
+async def accept_friend_request(
+    id: int, response: Response, user: UserResponse = Depends(authenticate_user)
+):
+    user = await UserService.accept_friend_request(user, id)
+    # response.status_code = user["status_code"]
     return user

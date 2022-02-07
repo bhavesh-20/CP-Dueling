@@ -1,7 +1,8 @@
 import glob
 from os.path import basename, dirname, isfile, join
 
-from .user import Friend, User
+from .friends import FriendRequests, Friends
+from .user import User
 
 modules = glob.glob(join(dirname(__file__), "*.py"))
 __all__ = [

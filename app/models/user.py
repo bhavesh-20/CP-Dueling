@@ -13,15 +13,3 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, nullable=False, server_default="true")
-
-
-class Friend(Base):
-
-    __tablename__ = "friends"
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id"), index=True)
-    friend_id = Column(Integer, ForeignKey("users.id"), index=True)
-
-    user = relationship("User", foreign_keys=[user_id])
-    friend = relationship("User", foreign_keys=[friend_id])
