@@ -57,5 +57,14 @@ async def accept_friend_request(
     id: int, response: Response, user: UserResponse = Depends(authenticate_user)
 ):
     user = await UserService.accept_friend_request(user, id)
-    # response.status_code = user["status_code"]
+    response.status_code = user["status_code"]
+    return user
+
+
+@router.post("/rejectfriendrequest/:id")
+async def reject_friend_request(
+    id: int, response: Response, user: UserResponse = Depends(authenticate_user)
+):
+    user = await UserService.reject_friend_request(user, id)
+    response.status_code = user["status_code"]
     return user

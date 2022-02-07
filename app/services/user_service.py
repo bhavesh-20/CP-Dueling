@@ -38,12 +38,9 @@ class UserService:
 
     @classmethod
     async def send_friend_request(cls, id, user):
-        friend = await db.fetch_one(select([User]).where(User.id == id))
-        if friend is None:
-            return {
-                "message": "User not found",
-                "status_code": status.HTTP_404_NOT_FOUND,
-            }
+        friend = await cls.get_user_by_id(id)
+        if friend["status_code"] == status.HTTP_404_NOT_FOUND:
+            return friend
 
         friend_id = friend.id
         user_id = user.id
@@ -53,27 +50,12 @@ class UserService:
                 "status_code": status.HTTP_400_BAD_REQUEST,
             }
 
-        existing_request = await db.fetch_one(
-            select([FriendRequests])
-            .where(FriendRequests.friend_id == user_id)
-            .where(FriendRequests.user_id == friend_id)
-        )
-        if existing_request is not None:
-            return {
-                "message": "This user has already sent you a friend request",
-                "status_code": status.HTTP_400_BAD_REQUEST,
-            }
-
-        existing_request = await db.fetch_one(
-            select([FriendRequests])
-            .where(FriendRequests.user_id == user_id)
-            .where(FriendRequests.friend_id == friend_id)
-        )
-        if existing_request is not None:
-            return {
-                "message": "You have already sent this user a friend request",
-                "status_code": status.HTTP_400_BAD_REQUEST,
-            }
+        check_existing_request = await cls.check_exsisting_request(user_id, friend_id)
+        if check_existing_request is not None:
+            return check_existing_request
+        check_existing_request = await cls.check_exsisting_request(friend_id, user_id)
+        if check_existing_request is not None:
+            return check_existing_request
 
         friend_exists = await db.fetch_one(
             select([Friends])
@@ -93,6 +75,19 @@ class UserService:
             "message": "User added",
             "status_code": status.HTTP_201_CREATED,
         }
+
+    async def check_exsisting_request(self, user_id, friend_id):
+        existing_request = await db.fetch_one(
+            select([FriendRequests])
+            .where(FriendRequests.user_id == user_id)
+            .where(FriendRequests.friend_id == friend_id)
+        )
+        if existing_request is not None:
+            return {
+                "message": "You have already sent this user a friend request",
+                "status_code": status.HTTP_400_BAD_REQUEST,
+            }
+        return None
 
     @classmethod
     async def get_friends(cls, user):
@@ -145,3 +140,12 @@ class UserService:
         await db.execute(insert(Friends).values(user_id=user.id, friend_id=id))
         await db.execute(insert(Friends).values(friend_id=user.id, user_id=id))
         return {"message": "Friend request accepted", "status_code": status.HTTP_200_OK}
+
+    @classmethod
+    async def reject_friend_request(cls, user, id):
+        await db.execute(
+            delete(FriendRequests)
+            .where(FriendRequests.user_id == id)
+            .where(FriendRequests.friend_id == user.id)
+        )
+        return {"message": "Friend request rejected", "status_code": status.HTTP_200_OK}

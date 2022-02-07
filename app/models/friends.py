@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 
 from app.database import Base
 
-from . import User
+# from . import User
 
 
 class FriendRequests(Base):
