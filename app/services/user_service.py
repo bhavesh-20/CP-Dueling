@@ -42,7 +42,7 @@ class UserService:
         if friend["status_code"] == status.HTTP_404_NOT_FOUND:
             return friend
 
-        friend_id = friend.id
+        friend_id = friend["data"].id
         user_id = user.id
         if user_id == friend_id:
             return {
@@ -50,10 +50,14 @@ class UserService:
                 "status_code": status.HTTP_400_BAD_REQUEST,
             }
 
-        check_existing_request = await cls.check_exsisting_request(user_id, friend_id)
+        check_existing_request = await UserService.check_exsisting_request(
+            user_id, friend_id
+        )
         if check_existing_request is not None:
             return check_existing_request
-        check_existing_request = await cls.check_exsisting_request(friend_id, user_id)
+        check_existing_request = await UserService.check_exsisting_request(
+            friend_id, user_id
+        )
         if check_existing_request is not None:
             return check_existing_request
 
@@ -64,7 +68,7 @@ class UserService:
         )
         if friend_exists is not None:
             return {
-                "message": "User already added",
+                "message": "User is already a friend",
                 "status_code": status.HTTP_409_CONFLICT,
             }
 
@@ -72,10 +76,11 @@ class UserService:
             insert(FriendRequests).values(user_id=user_id, friend_id=friend_id)
         )
         return {
-            "message": "User added",
+            "message": "Friend request sent",
             "status_code": status.HTTP_201_CREATED,
         }
 
+    @classmethod
     async def check_exsisting_request(self, user_id, friend_id):
         existing_request = await db.fetch_one(
             select([FriendRequests])
@@ -120,17 +125,35 @@ class UserService:
         }
 
     @classmethod
+    async def get_exsisting_friend(cls, user, friend_id):
+        friend = await db.fetch_one(
+            select([Friends])
+            .where(Friends.user_id == user.id)
+            .where(Friends.friend_id == friend_id)
+        )
+        if friend is None:
+            return {
+                "message": "Friend not found",
+                "status_code": status.HTTP_404_NOT_FOUND,
+            }
+        return None
+
+    @classmethod
     async def accept_friend_request(cls, user, id):
-        exsisting_friends = await UserService.get_friends(user)
-        exsists = False
-        for data in exsisting_friends["data"]:
-            if id == data.id:
-                exsists = True
-                break
-        if exsists:
+        valid_user = await cls.get_user_by_id(id)
+        if valid_user["status_code"] == status.HTTP_404_NOT_FOUND:
+            return valid_user
+        exsisting_friends = await cls.get_exsisting_friend(user, id)
+        if exsisting_friends is None:
             return {
                 "message": "User already added",
                 "status_code": status.HTTP_409_CONFLICT,
+            }
+        check_exsisting_request = await UserService.check_exsisting_request(id, user.id)
+        if check_exsisting_request is None:
+            return {
+                "message": "No friend request found",
+                "status_code": status.HTTP_404_NOT_FOUND,
             }
         await db.execute(
             delete(FriendRequests)
@@ -143,9 +166,63 @@ class UserService:
 
     @classmethod
     async def reject_friend_request(cls, user, id):
+        valid_user = await cls.get_user_by_id(id)
+        if valid_user["status_code"] == status.HTTP_404_NOT_FOUND:
+            return valid_user
+        check_exsisting_request = await UserService.check_exsisting_request(id, user.id)
+        if check_exsisting_request is None:
+            return {
+                "message": "No friend request found",
+                "status_code": status.HTTP_404_NOT_FOUND,
+            }
         await db.execute(
             delete(FriendRequests)
             .where(FriendRequests.user_id == id)
             .where(FriendRequests.friend_id == user.id)
         )
         return {"message": "Friend request rejected", "status_code": status.HTTP_200_OK}
+
+    @classmethod
+    async def delete_friendrequest(cls, user, id):
+        valid_user = await cls.get_user_by_id(id)
+        if valid_user["status_code"] == status.HTTP_404_NOT_FOUND:
+            return valid_user
+        check_exsisting_request = await UserService.check_exsisting_request(user.id, id)
+        if check_exsisting_request is None:
+            return {
+                "message": "No friend request found",
+                "status_code": status.HTTP_404_NOT_FOUND,
+            }
+        await db.execute(
+            delete(FriendRequests)
+            .where(FriendRequests.user_id == user.id)
+            .where(FriendRequests.friend_id == id)
+        )
+        return {"message": "Friend request deleted", "status_code": status.HTTP_200_OK}
+
+    @classmethod
+    async def remove_friend(cls, user, id):
+        valid_user = await cls.get_user_by_id(id)
+        if valid_user["status_code"] == status.HTTP_404_NOT_FOUND:
+            return valid_user
+        existing_friend = await db.fetch_one(
+            select([Friends])
+            .where(Friends.user_id == user.id)
+            .where(Friends.friend_id == id)
+        )
+        if existing_friend is None:
+            return {
+                "message": "Friend not found",
+                "status_code": status.HTTP_404_NOT_FOUND,
+            }
+        await db.execute(
+            delete(Friends)
+            .where(Friends.user_id == user.id)
+            .where(Friends.friend_id == id)
+        )
+        await db.execute(
+            delete(Friends)
+            .where(Friends.user_id == id)
+            .where(Friends.friend_id == user.id)
+        )
+        return {"message": "Friend deleted", "status_code": status.HTTP_200_OK}
