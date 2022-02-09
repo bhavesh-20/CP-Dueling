@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Response, status
 
 from app.schemas import UserResponse
-from app.services import UserService
+from app.services import UserService, FriendService
 from app.utils import authenticate_user
 
 router = APIRouter(prefix="/user", tags=["user_module"])
@@ -29,7 +29,7 @@ async def get_user_by_username(
 async def send_friend_request(
     id: int, response: Response, user: UserResponse = Depends(authenticate_user)
 ):
-    resp = await UserService.send_friend_request(id, user)
+    resp = await FriendService.send_friend_request(id, user)
     response.status_code = resp["status_code"]
     return resp
 
@@ -38,7 +38,7 @@ async def send_friend_request(
 async def get_friends(
     response: Response, user: UserResponse = Depends(authenticate_user)
 ):
-    resp = await UserService.get_friends(user)
+    resp = await FriendService.get_friends(user)
     response.status_code = resp["status_code"]
     return resp
 
@@ -47,7 +47,7 @@ async def get_friends(
 async def get_friend_requests(
     response: Response, user: UserResponse = Depends(authenticate_user)
 ):
-    resp = await UserService.get_friend_requests(user)
+    resp = await FriendService.get_friend_requests(user)
     response.status_code = resp["status_code"]
     return resp
 
@@ -56,7 +56,7 @@ async def get_friend_requests(
 async def accept_friend_request(
     id: int, response: Response, user: UserResponse = Depends(authenticate_user)
 ):
-    resp = await UserService.accept_friend_request(user, id)
+    resp = await FriendService.accept_friend_request(user, id)
     response.status_code = resp["status_code"]
     return resp
 
@@ -65,7 +65,7 @@ async def accept_friend_request(
 async def reject_friend_request(
     id: int, response: Response, user: UserResponse = Depends(authenticate_user)
 ):
-    resp = await UserService.reject_friend_request(user, id)
+    resp = await FriendService.reject_friend_request(user, id)
     response.status_code = resp["status_code"]
     return resp
 
@@ -74,7 +74,7 @@ async def reject_friend_request(
 async def remove_friend(
     id: int, response: Response, user: UserResponse = Depends(authenticate_user)
 ):
-    resp = await UserService.remove_friend(user, id)
+    resp = await FriendService.remove_friend(user, id)
     response.status_code = resp["status_code"]
     return resp
 
@@ -83,6 +83,6 @@ async def remove_friend(
 async def delete_friend_request(
     id: int, response: Response, user: UserResponse = Depends(authenticate_user)
 ):
-    resp = await UserService.delete_friendrequest(user, id)
+    resp = await FriendService.delete_friend_request(user, id)
     response.status_code = resp["status_code"]
     return resp
