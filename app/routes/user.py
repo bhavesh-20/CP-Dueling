@@ -79,8 +79,8 @@ async def remove_friend(
     return resp
 
 
-@router.post("/delectfriendrequest/:id")
-async def delect_friend_request(
+@router.post("/deletefriendrequest/:id")
+async def delete_friend_request(
     id: int, response: Response, user: UserResponse = Depends(authenticate_user)
 ):
     resp = await UserService.delete_friendrequest(user, id)
