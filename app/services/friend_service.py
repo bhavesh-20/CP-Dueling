@@ -1,12 +1,15 @@
 from fastapi import status
+from sqlalchemy import and_, or_
 from sqlalchemy.sql.expression import delete, insert, select
 
 from app import db
 from app.models import FriendRequests, Friends, User
+from app.schemas import UserResponse
+
 from .user_service import UserService
 
-class FriendService:
 
+class FriendService:
     @classmethod
     async def send_friend_request(cls, id, user):
         friend = await UserService.get_user_by_id(id)
@@ -48,20 +51,30 @@ class FriendService:
     @classmethod
     async def check_existing_request(cls, user_id, friend_id):
         existing_request = await db.fetch_all(
-            select([FriendRequests])
-            .where(
-                (FriendRequests.user_id == user_id and FriendRequests.friend_id == friend_id)
-                or
-                (FriendRequests.user_id == friend_id and FriendRequests.friend_id == user_id)
+            select([FriendRequests]).where(
+                or_(
+                    and_(
+                        FriendRequests.user_id == user_id,
+                        FriendRequests.friend_id == friend_id,
+                    ),
+                    and_(
+                        FriendRequests.user_id == friend_id,
+                        FriendRequests.friend_id == user_id,
+                    ),
                 )
+            )
         )
         if existing_request is not None:
             return True, {
                 "message": "You have existing friend request with this user",
                 "status_code": status.HTTP_400_BAD_REQUEST,
-                "existing_request": True
+                "existing_request": True,
             }
-        return True, {"message": "No existing request record found.", "existing_request": False, "status_code": status.HTTP_200_OK}
+        return True, {
+            "message": "No existing request record found.",
+            "existing_request": False,
+            "status_code": status.HTTP_200_OK,
+        }
 
     @classmethod
     async def get_friends(cls, user):
@@ -106,7 +119,11 @@ class FriendService:
                 "status_code": status.HTTP_404_NOT_FOUND,
             }
         friend = await UserService.get_user_by_id(friend["friend_id"])
-        return True, {"message": "Friend found", "status_code": status.HTTP_200_OK, "friend": friend}
+        return True, {
+            "message": "Friend found",
+            "status_code": status.HTTP_200_OK,
+            "friend": friend,
+        }
 
     @classmethod
     async def accept_friend_request(cls, user, id):
@@ -115,12 +132,11 @@ class FriendService:
         if valid_user["status_code"] != status.HTTP_200_OK:
             return valid_user
 
-
         op_status, resp = await cls.get_existing_friend(user, id)
 
         if not op_status:
             return resp
-        
+
         existing_friend = resp["friend"]
 
         if existing_friend:
@@ -128,7 +144,7 @@ class FriendService:
                 "message": "User already added",
                 "status_code": status.HTTP_409_CONFLICT,
             }
-        op_status, resp = await cls.check_existing_request(user_id, friend_id)
+        op_status, resp = await cls.check_existing_request(user.id, id)
 
         if not op_status:
             return resp
@@ -154,7 +170,7 @@ class FriendService:
         if valid_user["status_code"] != status.HTTP_200_OK:
             return valid_user
 
-        op_status, resp = await cls.check_existing_request(user_id, friend_id)
+        op_status, resp = await cls.check_existing_request(user.id, id)
 
         if op_status:
             return resp
@@ -176,7 +192,7 @@ class FriendService:
         valid_user = await UserService.get_user_by_id(id)
         if valid_user["status_code"] == status.HTTP_404_NOT_FOUND:
             return valid_user
-        op_status, resp = await cls.check_existing_request(user_id, friend_id)
+        op_status, resp = await cls.check_existing_request(user.id, id)
 
         if not op_status:
             return resp
@@ -207,7 +223,7 @@ class FriendService:
 
         if not op_status:
             return resp
-        
+
         existing_friend = resp["friend"]
 
         if not existing_friend:
@@ -215,7 +231,7 @@ class FriendService:
                 "message": "Friend not found",
                 "status_code": status.HTTP_404_NOT_FOUND,
             }
-            
+
         await db.execute(
             delete(Friends)
             .where(Friends.user_id == user.id)
