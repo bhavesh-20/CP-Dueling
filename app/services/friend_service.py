@@ -29,6 +29,11 @@ class FriendService:
         if not op_status or resp["existing_request"]:
             return resp
 
+        op_status, resp = await cls.check_existing_request(friend_id, user_id)
+
+        if not op_status or resp["existing_request"]:
+            return resp
+
         friend_exists = await db.fetch_one(
             select([Friends])
             .where(Friends.user_id == user_id)
@@ -52,19 +57,13 @@ class FriendService:
     async def check_existing_request(cls, user_id, friend_id):
         existing_request = await db.fetch_all(
             select([FriendRequests]).where(
-                or_(
-                    and_(
-                        FriendRequests.user_id == user_id,
-                        FriendRequests.friend_id == friend_id,
-                    ),
-                    and_(
-                        FriendRequests.user_id == friend_id,
-                        FriendRequests.friend_id == user_id,
-                    ),
-                )
+                and_(
+                    FriendRequests.user_id == friend_id,
+                    FriendRequests.friend_id == user_id,
+                ),
             )
         )
-        if existing_request is not None:
+        if existing_request:
             return True, {
                 "message": "You have existing friend request with this user",
                 "status_code": status.HTTP_400_BAD_REQUEST,
@@ -117,6 +116,7 @@ class FriendService:
             return True, {
                 "message": "Friend not found",
                 "status_code": status.HTTP_404_NOT_FOUND,
+                "friend": None,
             }
         friend = await UserService.get_user_by_id(friend["friend_id"])
         return True, {
@@ -172,7 +172,7 @@ class FriendService:
 
         op_status, resp = await cls.check_existing_request(user.id, id)
 
-        if op_status:
+        if not op_status:
             return resp
 
         if resp["existing_request"] is None:
@@ -192,7 +192,7 @@ class FriendService:
         valid_user = await UserService.get_user_by_id(id)
         if valid_user["status_code"] == status.HTTP_404_NOT_FOUND:
             return valid_user
-        op_status, resp = await cls.check_existing_request(user.id, id)
+        op_status, resp = await cls.check_existing_request(id, user.id)
 
         if not op_status:
             return resp
@@ -215,16 +215,11 @@ class FriendService:
         if valid_user["status_code"] != status.HTTP_200_OK:
             return valid_user
 
-        op_status, resp = await db.fetch_one(
+        existing_friend = await db.fetch_one(
             select([Friends])
             .where(Friends.user_id == user.id)
             .where(Friends.friend_id == id)
         )
-
-        if not op_status:
-            return resp
-
-        existing_friend = resp["friend"]
 
         if not existing_friend:
             return {
