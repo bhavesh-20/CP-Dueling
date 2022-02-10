@@ -1,5 +1,6 @@
 from fastapi import status
 from passlib.context import CryptContext
+from sqlalchemy import and_, or_
 from sqlalchemy.sql.expression import insert, select
 
 from app import db
@@ -14,7 +15,7 @@ class AuthService:
 
     @classmethod
     async def login(cls, request: UserLoginRequest):
-        """Functionality for /login endpoint. And also JWT token creation invoked."""
+        """Functionality for login endpoint. And also JWT token creation invoked."""
         user = await db.fetch_one(select([User]).where(User.email == request.email))
 
         if user is None:
@@ -41,11 +42,15 @@ class AuthService:
 
     @classmethod
     async def signup(cls, request: UserSignupRequest):
-        """Functionality for /signup endpoint.(New User)"""
-        user = await db.fetch_one(select([User]).where(User.email == request.email))
+        """Functionality for signup endpoint.(New User)"""
+        user = await db.fetch_one(
+            select([User]).where(
+                or_(User.email == request.email, User.username == request.username)
+            )
+        )
         if user is not None:
             return {
-                "message": "User already exists",
+                "message": "User with given username or email already exists",
                 "status_code": status.HTTP_409_CONFLICT,
             }
         await db.execute(
