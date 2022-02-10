@@ -9,7 +9,7 @@ if %ERRORLEVEL% NEQ 0 (
     echo "Isort failed"
     exit /b %ERRORLEVEL%
 )
-call (pip freeze > requirements.txt)
+call pip freeze > requirements.txt
 call git add .
 call git commit -m %commitmessage%
 if %ERRORLEVEL% NEQ 0 (
